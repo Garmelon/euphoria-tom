@@ -270,8 +270,7 @@ def shortest_path(text):
 	path = dijkstra(graph, text, "")
 	return path
 
-class Tom:
-	SHORT_DESCRIPTION = "spell a word using chemical elements, if possible"
+class Tom(yaboli.Module):
 	DESCRIPTION = (
 		"'tom' attempts to spell a word using the symbols of the periodic table."
 		" For example, 'Hi' becomes 'Hydrogen Iodine'.\n"
@@ -282,8 +281,17 @@ class Tom:
 	AUTHOR = "Created by @Garmy using github.com/Garmelon/yaboli\n"
 	CREDITS = "Inspired by Tomsci. Algorithm based on a suggestion by Xyzzy.\n"
 
+	SHORT_DESCRIPTION = "spell a word using chemical elements, if possible"
+	SHORT_HELP =   "/me spells a word using chemical elements, if possible"
+
+	LONG_DESCRIPTION = DESCRIPTION + COMMANDS          + CREDITS
+	LONG_HELP        = DESCRIPTION + COMMANDS + AUTHOR + CREDITS
+
 	ALLOWED_CHARS = r"a-zA-Z*\w"
 	ELEM_RE = "([" + ALLOWED_CHARS + "]*)([^" + ALLOWED_CHARS + "]*)"
+
+	async def on_command_general(self, room, message, command, argstr):
+		await self.command_tom(room, message, command, argstr)
 
 	@yaboli.command("tom")
 	async def command_tom(self, room, message, argstr):
@@ -306,29 +314,6 @@ class Tom:
 		text = "".join(spellings)
 		await room.send(text, message.mid)
 
-class TomBot(yaboli.Bot):
-	SHORT_HELP = Tom.SHORT_DESCRIPTION
-	LONG_HELP = Tom.DESCRIPTION + Tom.COMMANDS + Tom.AUTHOR + Tom.CREDITS
-
-	def __init__(self, *args, **kwargs):
-		super().__init__(*args, **kwargs)
-		self.tom = Tom()
-
-	async def on_command_specific(self, room, message, command, nick, argstr):
-		if similar(nick, room.session.nick) and not argstr:
-			await self.botrulez_ping(room, message, command)
-			await self.botrulez_help(room, message, command, text=self.LONG_HELP)
-			await self.botrulez_uptime(room, message, command)
-			await self.botrulez_kill(room, message, command)
-			await self.botrulez_restart(room, message, command)
-
-	async def on_command_general(self, room, message, command, argstr):
-		if not argstr:
-			await self.botrulez_ping(room, message, command)
-			await self.botrulez_help(room, message, command, text=self.SHORT_HELP)
-
-		await self.tom.command_tom(room, message, command, argstr)
-
 def main(configfile):
 	logging.basicConfig(level=logging.INFO)
 
@@ -337,8 +322,9 @@ def main(configfile):
 
 	nick = config.get("general", "nick")
 	cookiefile = config.get("general", "cookiefile", fallback=None)
+	module = Tom()
 
-	bot = TomBot(nick, cookiefile=cookiefile)
+	bot = yaboli.ModuleBot(module, nick, cookiefile=cookiefile)
 
 	for room, password in config.items("rooms"):
 		if not password:
