@@ -1,9 +1,0 @@
-[general]
-nick = tom
-cookiefile = tom.cookie
-
-[rooms]
-# Format:
-# room
-# room=password
-test

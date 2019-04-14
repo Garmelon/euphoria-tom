@@ -1,0 +1,6 @@
+[general]
+nick = tom
+cookiefile = bot.cookie
+
+[rooms]
+test
